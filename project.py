@@ -275,8 +275,6 @@ def tvShowJSON():
 @app.route('/tvshow/<int:tvshow_id>/episodes/JSON')
 def episodesJSON(tvshow_id):
     episodes = session.query(Tvshow).filter_by(id=tvshow_id).one().episodes
-    # items = session.query(MenuItem).filter_by(
-    #     tvshow_id=tvshow_id).all()
     return jsonify(Episodes=[e.serialize for e in episodes])
 
 
@@ -293,7 +291,8 @@ def menuItemJSON(category):
 def showTvshows():
     tvshows = session.query(Tvshow).order_by(asc(Tvshow.name))
     # filter out genres not associated with any existing tvshows
-    genres = session.query(Genre).join(GenreShow).filter(GenreShow.genre_id == Genre.id)
+    genres = session.query(Genre).join(GenreShow).filter(
+        GenreShow.genre_id == Genre.id)
     if 'username' not in login_session:
         return render_template('publictvshows.html',
                                tvshows=tvshows, genres=genres)
@@ -329,10 +328,11 @@ def editTvshow(tvshow_id):
             editedTvshow.name = request.form['name']
             flash('Tvshow Successfully Edited %s' % editedTvshow.name)
         # If the user changes any of the genres
-        genreShowLocalList = session.query(GenreShow).filter_by(tvshow_id=editedTvshow.id).all()
+        genreShowLocalList = session.query(GenreShow).filter_by(
+            tvshow_id=editedTvshow.id).all()
         # delete any unchecked genre box from GenreShow
         for genreShowLocal in genreShowLocalList:
-            if request.form.keys().__contains__(genreShowLocal.genre.name) == False:
+            if not request.form.keys().__contains__(genreShowLocal.genre.name):
                 session.delete(genreShowLocal)
         # add any new genre to Genre and to GenreShow
         for k, v in request.form.items():
@@ -346,14 +346,17 @@ def editTvshow(tvshow_id):
                     session.commit()
                 # with local genre, create a GenreShow relationship
                 try:
-                    session.query(GenreShow).filter_by(tvshow_id=editedTvshow.id, genre_id=genreLocal.id).one()
+                    session.query(GenreShow).filter_by(
+                        tvshow_id=editedTvshow.id, genre_id=genreLocal.id).one()
                 except NoResultFound:
                     try:
-                        newGenreShow = GenreShow(tvshow_id=editedTvshow.id, genre_id=genreLocal.id)
+                        newGenreShow = GenreShow(tvshow_id=editedTvshow.id,
+                                                 genre_id=genreLocal.id)
                         session.add(newGenreShow)
                         session.commit()
-                        flash('Successfully created GenreShow relationship for %s: %s' % (
-                            genreLocal.name, editedTvshow.name))
+                        flash(
+                            'Successfully created GenreShow relationship for %s: %s' % (
+                                genreLocal.name, editedTvshow.name))
                     except:
                         session.flush()
                         flash('failed to create GenreShow relationship')
@@ -366,7 +369,8 @@ def editTvshow(tvshow_id):
 @app.route('/tvshow/<int:tvshow_id>/delete/', methods=['GET', 'POST'])
 def deleteTvshow(tvshow_id):
     delTvshow = session.query(Tvshow).filter_by(id=tvshow_id).one()
-    if 'username' not in login_session or delTvshow.user.id != login_session['user_id']:
+    if 'username' not in login_session or delTvshow.user.id != login_session[
+        'user_id']:
         return redirect('/login')
     if request.method == 'POST':
         session.delete(delTvshow)
@@ -384,8 +388,8 @@ def showEpisodes(tvshow_id):
     episodes = session.query(Episode).filter_by(
         tvshow_id=tvshow_id).all()
     creator = getUserInfo(tvshow.user_id)
-    if creator.id != login_session[
-        'user_id'] or 'username' not in login_session:
+    if 'username' not in login_session or creator.id != login_session[
+        'user_id']:
         return render_template('publicepisodes.html', episodes=episodes,
                                tvshow=tvshow, creator=creator)
     else:
@@ -399,7 +403,8 @@ def displayCategory(category):
     genreshows = session.query(GenreShow).filter_by(genre_id=genre_id).all()
     # making sure we send the right Tvshow obj
     tvshows = []
-    genres = session.query(Genre).join(GenreShow).filter(GenreShow.genre_id == Genre.id)
+    genres = session.query(Genre).join(GenreShow).filter(
+        GenreShow.genre_id == Genre.id)
     for tvshow in genreshows:
         tvshows.append(tvshow.tvshow)
     # genre = [genreshows[0].genre.name, ]
@@ -423,7 +428,8 @@ def newEpisode(tvshow_id):
         airdatetime = airdate_datetime(request.form['airdate'])
         new_episode = Episode(title=request.form['title'], airdate=airdatetime,
                               season=request.form['season'],
-                              episode_num=request.form['episode'], tvshow_id=tvshow.id,
+                              episode_num=request.form['episode'],
+                              tvshow_id=tvshow.id,
                               user_id=login_session['user_id'])
         session.add(new_episode)
         session.commit()

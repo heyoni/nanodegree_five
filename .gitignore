@@ -102,3 +102,4 @@ ENV/
 .gitignore
 .idea/
 database_setup.pyc
+fomo.db

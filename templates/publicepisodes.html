@@ -1,8 +1,31 @@
 {% extends "main.html" %}
 {% block content %}
-{% include "header.html" %}
-    public page
-    {% for episode in episodes %}
-    <p>{{ episode.title }}</p>
-    {% endfor %}
+    {% include "header.html" %}
+    <div class="row">
+        <div class="col-sm-10"><h1>{{ tvshow.name }}</h1></div>
+    </div>
+    <div class="row">
+        <div class="col-sm-10">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Season</th>
+                    <th>Episode</th>
+                    <th>Title</th>
+                    <th>Airdate</th>
+                    <th>User</th>
+                </thead>
+                </tr>
+                {% for episode in episodes %}
+                    <tr>
+                        <td>{{ episode.season }}</td>
+                        <td>{{ episode.episode_num }}</td>
+                        <td>{{ episode.title }}</td>
+                        <td>{{ episode.airdate }}</td>
+                        <td>{{ episode.user.name }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
 {% endblock %}

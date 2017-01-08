@@ -1,7 +1,7 @@
 {% extends "main.html" %}
 {% block content %}
     {% include "header.html" %}
-    <div class="row divider green">
+    <div class="row divider grey">
         <div class="col-md-12"></div>
     </div>
     <div class="row banner menu">
@@ -14,7 +14,8 @@
             <form action="#" method="post">
                 <div class="form-group">
                     <label for="name">Title:</label>
-                    <input type="text" maxlength="100" class="form-control" name="title" value="{{ episode.title }}">
+                    <input type="text" maxlength="100" class="form-control"
+                           name="title" value="{{ episode.title }}">
 
                     <label for="season">Season:</label>
                     <textarea class="form-control" maxlength="250" rows="3"
@@ -28,23 +29,26 @@
                     <textarea class="form-control" maxlength="250" rows="3"
                               name="airdate">{{ episode.airdate }}</textarea>
 
-                    <button type="submit" class="btn btn-default" id="submit" type="submit">
-                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>Save
+                    <button type="submit" class="btn btn-default" id="submit"
+                            type="submit">
+                        <span class="glyphicon glyphicon-ok"
+                              aria-hidden="true"></span>Save
                     </button>
-                </div>
 
+                    <a href='{{ url_for('showEpisodes', tvshow_id=episode.tvshow.id) }}'>
+                        <button type="button" class="btn btn-default delete">
+                        <span class="glyphicon glyphicon-remove"
+                              aria-hidden="true"></span> Cancel
+                        </button>
+                    </a>
+                    <a href="{{ url_for('deleteEpisode', tvshow_id=episode.tvshow.id,episode_id=episode.id) }}">
+                        <button type="button" class="btn btn-default">
+                        <span class="glyphicon glyphicon-remove"
+                              aria-label="delete" aria-hidden="true"></span>
+                            Delete
+                        </button>
+                    </a>
             </form>
-
-            <a href='{{ url_for('showTvshows') }}'>
-                <button class="btn btn-default delete">
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
-                </button>
-            </a>
-            <a href="{{ url_for('deleteEpisode', tvshow_id=episode.tvshow.id,episode_id=episode.id) }}">
-                <button class="btn btn-default delete">
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Delete
-                </button>
-            </a>
         </div>
     </div>
 {% endblock %}

@@ -35,8 +35,12 @@ class Tvshow(Base):
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
     user = relationship(User)
 
-    episodes = relationship("Episode", back_populates='tvshow', cascade='all, delete, delete-orphan')
-    genreshow = relationship("GenreShow", back_populates='tvshow', cascade='all, delete, delete-orphan')
+    # If the Tvshow should be deleted, so will the episodes.
+    episodes = relationship("Episode", back_populates='tvshow',
+                            cascade='all, delete, delete-orphan')
+    # Lets me go from an individual Tvshow to the Genre object through GenreShow
+    genreshow = relationship("GenreShow", back_populates='tvshow',
+                             cascade='all, delete, delete-orphan')
     genres = relationship('GenreShow')
 
     @property
@@ -61,20 +65,6 @@ class GenreShow(Base):
 
     genre = relationship(Genre)
 
-class Season(Base):
-    __tablename__ = 'season'
-
-    id = Column(Integer, primary_key=True)
-    season = Column(Integer)
-    tvshow_id = Column(Integer, ForeignKey('tvshow.id'))
-
-    # Relationships
-    tvshow_id = Column(Integer, ForeignKey('tvshow.id'))
-    tvshow = relationship(Tvshow)
-
-    user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User)
-
 
 class Episode(Base):
     __tablename__ = 'episode'
@@ -85,10 +75,6 @@ class Episode(Base):
     season = Column(Integer)
     episode_num = Column(Integer)
     episode_imdb_id = Column(String(50), unique=True)
-
-    # Relationships
-    # season_id = Column(Integer, ForeignKey('season.id'))
-    # season = relationship(Season)
 
     tvshow_id = Column(Integer, ForeignKey('tvshow.id'))
     tvshow = relationship('Tvshow', back_populates='episodes')
@@ -106,17 +92,6 @@ class Episode(Base):
             'season': self.season,
             'episode_num': self.episode_num,
         }
-
-
-# class Movie(Base):
-#     __tablename__ = 'movie'
-#
-#     title = Column(String(80))
-#     id = Column(Integer, primary_key=True)
-#     release_date = Column(Date)
-#
-#     user_id = Column(Integer, ForeignKey('user.id'))
-#     user = relationship(User)
 
 
 engine = create_engine('sqlite:///fomo.db')
