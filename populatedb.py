@@ -3,7 +3,7 @@ from sqlalchemy import exc
 from sqlalchemy.orm import sessionmaker
 import imdbpie
 import datetime
-from database_setup import User, Tvshow, Season, Episode, Genre, Base, GenreShow
+from database_setup import Tvshow, Episode, Genre, Base, GenreShow
 import pickle
 
 engine = create_engine('sqlite:///fomo.db')
