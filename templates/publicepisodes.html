@@ -1,0 +1,8 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+    public page
+    {% for episode in episodes %}
+    <p>{{ episode.title }}</p>
+    {% endfor %}
+{% endblock %}

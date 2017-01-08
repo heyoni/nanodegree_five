@@ -1,0 +1,38 @@
+{% extends "main.html" %}
+{% block content %}
+    {% include "header.html" %}
+    <div class="row">
+        <div class="col-sm-10"><h1>{{ tvshow.name }}</h1></div>
+        <div class="col-sm-2">
+            <a href="{{ url_for('editTvshow', tvshow_id=tvshow.id) }}">edit</a>
+            <a href="{{ url_for('deleteTvshow', tvshow_id=tvshow.id) }}">delete</a>
+            <a href="{{ url_for('newEpisode', tvshow_id=tvshow.id) }}">new</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-10">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Season</th>
+                    <th>Episode</th>
+                    <th>Title</th>
+                    <th>Airdate</th>
+                    <th>Edit Ep</th>
+                </thead>
+                </tr>
+                {% for episode in episodes %}
+                    <tr>
+                        <td>{{ episode.season }}</td>
+                        <td>{{ episode.episode_num }}</td>
+                        <td>{{ episode.title }}</td>
+                        <td>{{ episode.airdate }}</td>
+                        <td><a href="{{ url_for('editEpisode', tvshow_id=tvshow.id, episode_id=episode.id) }}">Edit</a></td>
+                        <td>{{ episode.user.name }}</td>
+                        <td>{{ episode.user_id }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}

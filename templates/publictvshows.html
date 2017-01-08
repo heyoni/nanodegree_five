@@ -1,0 +1,7 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+{% for show in tvshows %}
+    <p>{{ show.name }}</p>
+{% endfor %}
+{% endblock %}

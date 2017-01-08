@@ -1,0 +1,12 @@
+{% extends "main.html" %}
+{% block content %}
+    {% include "header.html" %}
+    {% include "sidebar_categories.html" %}
+    <div class="col-xs-7 col-sm-8">
+        {% for show in tvshows %}
+            <p>
+                <a href="{{ url_for('showEpisodes', tvshow_id=show.id) }}">{{ show.name }}</a>
+            </p>
+        {% endfor %}
+    </div>
+{% endblock %}

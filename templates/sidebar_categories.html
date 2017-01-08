@@ -1,0 +1,12 @@
+<div class="col-xs-5 col-sm-2">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">Genres</h3>
+        </div>
+        <div class="panel-body">
+            {% for genre in genres %}
+                <a href = '{{url_for('displayCategory', category=genre.name)}}'>{{ genre.name }}</a><br>
+            {% endfor %}
+        </div>
+    </div>
+</div>
