@@ -5,6 +5,7 @@ Nanodegree project #5
 - [vagrant](https://www.vagrantup.com/)
 - [git](https://git-scm.com/)
 - [virtualbox](https://www.virtualbox.org/)
+- [imdb-pie](https://github.com/richardasaurus/imdb-pie)
 
 
 ## Download the source and VM configuration
@@ -21,7 +22,7 @@ bootstrap.sh file for installing all of the necessary tools.
 Using the terminal, change directory to nanodegree (**cd nanodegree**), then type **vagrant up** to launch your virtual machine.
 
 
-## Running the Restaurant Menu App
+## Running the Tvshows App
 Once it is up and running, type **vagrant ssh**. This will log your terminal into the virtual machine, and you'll get a Linux shell prompt. 
 When you want to log out, type **exit** at the shell prompt.  To turn the virtual machine off (without deleting anything), type **vagrant halt**. 
 If you do this, you'll need to run **vagrant up** again before you can log into it.

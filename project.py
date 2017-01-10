@@ -8,6 +8,8 @@ from flask import session as login_session
 import random
 import string
 import datetime
+from functools import wraps
+
 
 # IMPORTS FOR THIS STEP
 from oauth2client.client import flow_from_clientsecrets
@@ -243,7 +245,8 @@ def fbdisconnect():
 
 
 def createUser(login_session):
-    newUser = User(name=login_session['username'], email=login_session['email'],
+    newUser = User(name=login_session['username'],
+                   email=login_session['email'],
                    picture=login_session['picture'])
     session.add(newUser)
     session.commit()
@@ -278,10 +281,18 @@ def episodesJSON(tvshow_id):
     return jsonify(Episodes=[e.serialize for e in episodes])
 
 
+@app.route('/episode/<int:episode_id>/JSON')
+@app.route('/tvshow/<int:tvshow_id>/episodes/<int:episode_id>/JSON')
+def episodeJSON(episode_id, tvshow_id):
+    episode = session.query(Episode).filter_by(id=episode_id)
+    return jsonify(episode.one().serialize)
+
+
 @app.route('/tvshow/category/<string:category>/JSON')
 def menuItemJSON(category):
     genre_id = session.query(Genre).filter_by(name=category).one().id
-    genreShowLocal = session.query(GenreShow).filter_by(genre_id=genre_id).all()
+    genreShowLocal = session.query(GenreShow).filter_by(
+        genre_id=genre_id).all()
     tvshows = [genreShow.tvshow for genreShow in genreShowLocal]
     return jsonify(tvshow_by_genre=[e.serialize for e in tvshows])
 
@@ -300,10 +311,20 @@ def showTvshows():
         return render_template('tvshows.html', tvshows=tvshows, genres=genres)
 
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in login_session:
+            return redirect('/login')
+        else:
+            return f(*args, **kwargs)
+
+    return decorated_function
+
+
 @app.route('/tvshow/new/', methods=['GET', 'POST'])
+@login_required
 def newTvshow():
-    if 'username' not in login_session:
-        return redirect('/login')
     if request.method == 'POST':
         newTvshow = Tvshow(name=request.form['name'],
                            imdb_id=request.form['imdb_id'],
@@ -316,12 +337,28 @@ def newTvshow():
         return render_template('newTvshow.html')
 
 
+def auth_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        tvShow = session.query(Tvshow).filter_by(id=kwargs['tvshow_id']).one()
+        if 'username' not in login_session or tvShow.user.id != \
+                login_session[
+                    'user_id']:
+            return redirect('/login')
+        else:
+            return f(*args, **kwargs)
+
+    return decorated_function
+
+
 @app.route('/tvshow/<int:tvshow_id>/edit/', methods=['GET', 'POST'])
+@auth_required
 def editTvshow(tvshow_id):
     editedTvshow = session.query(Tvshow).filter_by(id=tvshow_id).one()
-    if 'username' not in login_session or editedTvshow.user.id != login_session[
-        'user_id']:
-        return redirect('/login')
+    # if 'username' not in login_session or editedTvshow.user.id != \
+    #         login_session[
+    #             'user_id']:
+    #     return redirect('/login')
     if request.method == 'POST':
         # If the user changes the movie's title
         if request.form['name']:
@@ -347,7 +384,8 @@ def editTvshow(tvshow_id):
                 # with local genre, create a GenreShow relationship
                 try:
                     session.query(GenreShow).filter_by(
-                        tvshow_id=editedTvshow.id, genre_id=genreLocal.id).one()
+                        tvshow_id=editedTvshow.id,
+                        genre_id=genreLocal.id).one()
                 except NoResultFound:
                     try:
                         newGenreShow = GenreShow(tvshow_id=editedTvshow.id,
@@ -355,7 +393,8 @@ def editTvshow(tvshow_id):
                         session.add(newGenreShow)
                         session.commit()
                         flash(
-                            'Successfully created GenreShow relationship for %s: %s' % (
+                            'Successfully created GenreShow relationship for '
+                            '%s: %s' % (
                                 genreLocal.name, editedTvshow.name))
                     except:
                         session.flush()
@@ -367,11 +406,12 @@ def editTvshow(tvshow_id):
 
 
 @app.route('/tvshow/<int:tvshow_id>/delete/', methods=['GET', 'POST'])
+@auth_required
 def deleteTvshow(tvshow_id):
     delTvshow = session.query(Tvshow).filter_by(id=tvshow_id).one()
-    if 'username' not in login_session or delTvshow.user.id != login_session[
-        'user_id']:
-        return redirect('/login')
+    # if 'username' not in login_session or delTvshow.user.id != login_session[
+    #     'user_id']:
+    #     return redirect('/login')
     if request.method == 'POST':
         session.delete(delTvshow)
         flash('%s Successfully Deleted' % delTvshow.name)
@@ -412,6 +452,15 @@ def displayCategory(category):
 
 
 def airdate_datetime(airdate):
+    """
+
+    Convert a string in the form of year-mont-day into a datetime.date object
+
+    Example:
+        airdate_datetime('1999-12-31') will return datetime.date(1999, 12,
+        31) which can then be properly inserted into the db, which requires
+        datetime.date objects.
+    """
     year = int(airdate.split('-')[0])
     month = int(airdate.split('-')[1])
     day = int(airdate.split('-')[2])
@@ -420,9 +469,8 @@ def airdate_datetime(airdate):
 
 # Create a new menu item
 @app.route('/tvshow/<int:tvshow_id>/episode/new/', methods=['GET', 'POST'])
+@auth_required
 def newEpisode(tvshow_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     tvshow = session.query(Tvshow).filter_by(id=tvshow_id).one()
     if request.method == 'POST':
         airdatetime = airdate_datetime(request.form['airdate'])
@@ -433,7 +481,7 @@ def newEpisode(tvshow_id):
                               user_id=login_session['user_id'])
         session.add(new_episode)
         session.commit()
-        flash('New Episode %s Item Successfully Created' % (new_episode.title))
+        flash('New Episode %s Item Successfully Created' % new_episode.title)
         return redirect(url_for('showEpisodes', tvshow_id=tvshow_id))
     else:
         return render_template('newepisode.html', tvshow_id=tvshow_id)
@@ -441,12 +489,10 @@ def newEpisode(tvshow_id):
 
 @app.route('/tvshow/<int:tvshow_id>/episodes/<int:episode_id>/edit',
            methods=['GET', 'POST'])
+@auth_required
 def editEpisode(tvshow_id, episode_id):
     editedEpisode = session.query(Episode).filter_by(id=episode_id).one()
     editedShow = session.query(Tvshow).filter_by(id=tvshow_id).one()
-    if 'username' not in login_session or editedShow.user.id != login_session[
-        'user_id']:
-        return redirect('/login')
     if request.method == 'POST':
         if request.form['title']:
             editedEpisode.title = request.form['title']
@@ -472,12 +518,10 @@ def editEpisode(tvshow_id, episode_id):
 # Delete a menu item
 @app.route('/tvshow/<int:tvshow_id>/episodes/<int:episode_id>/delete',
            methods=['GET', 'POST'])
+@auth_required
 def deleteEpisode(tvshow_id, episode_id):
     tvshow = session.query(Tvshow).filter_by(id=tvshow_id).one()
     del_episode = session.query(Episode).filter_by(id=episode_id).one()
-    if 'username' not in login_session or tvshow.user.id != login_session[
-        'user_id']:
-        return redirect('/login')
     if request.method == 'POST':
         session.delete(del_episode)
         session.commit()
